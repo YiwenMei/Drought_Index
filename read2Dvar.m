@@ -1,23 +1,21 @@
 % Yiwen Mei (ymei2@gmu.edu)
 % CEIE, George Mason University
-% Last update: 12/12/2018
+% Last update: 8/12/2019
 
 %% Functionality
-% This function reads 2D image.
+% This function reads 2D variable stores in different types of file.
 
 %% Input
-% Fdetail: details of the file stores the 2D image. Details include a) full name
-% of the image file;
-% vname: field name of the image file;or
-%  ndv : no data value of target/reference image.
+% Fdetail: details of the 2D variable include the a)name of the file stores the
+%          variable, b)its no data value, c)its upper limit, d)its lower limt,
+%          and e)its name.
 
 %% Output
 % v2d: 2D image as matlab variable.
 
 %% Additional note
 % The function supports .tif, .tiff, .nc, .nc4, .hdf, .hdf5, .asc, .txt, and
-%  .mat format files. For .mat file, vname is the Matlab variable. For .tif,
-%  .tiff, asc, and .txt, set vanme to [].
+%  .mat format files.
 
 function v2d=read2Dvar(Fdetail,varargin)
 %% Check inputs
@@ -28,6 +26,7 @@ ips.FunctionName=mfilename;
 addRequired(ips,'Fdetail',@(x) validateattributes(x,{'double','cell'},{'nonempty'},mfilename,'Fdetail'));
 addOptional(ips,'FunName',mfilename,@(x) validateattributes(x,{'struct'},{'nonempty'},mfilename,'Fdetail'));
 parse(ips,Fdetail,varargin{:});
+
 if ~isempty(varargin)
   FunName=ips.Results.FunName;
   FN=[];
@@ -38,7 +37,7 @@ if ~isempty(varargin)
 else
   FN=mfilename;
 end  
-clear ips FunName
+clear ips FunName varagin
 
 if iscell(Fdetail)
 %% Read the file
