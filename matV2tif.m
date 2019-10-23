@@ -50,7 +50,7 @@ dlmwrite(afn,matV,'delimiter',' ','-append');
 fclose(fid);
 
 %% Convert .asc to geotiff
-fun='gdal_translate';
+fun='gdal_translate -q';
 pr1=sprintf('-a_srs %s',ors);
 pr2=sprintf('-a_nodata %i',ndv);
 system(sprintf('%s %s %s "%s" "%s"',fun,pr1,pr2,afn,tfn));
