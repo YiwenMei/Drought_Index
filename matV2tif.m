@@ -38,7 +38,7 @@ clear ips varargin
 
 %% Write Matlab variable to .asc
 [~,nm,~]=fileparts(tfn);
-afn=fullfile(wkpth,[nm '.asc']);
+afn=fullfile(wkpth,sprintf('%s.asc',nm));
 fid=fopen(afn,'w');
 fprintf(fid,'%s\n%s\n%s\n%s\n%s\n%s\n',['ncols ' num2str(size(matV,2))],...
     ['nrows ' num2str(size(matV,1))],['xllcorner ' num2str(xll,12)],['yllcorner '...
@@ -53,6 +53,7 @@ fclose(fid);
 fun='gdal_translate -q';
 pr1=sprintf('-a_srs %s',ors);
 pr2=sprintf('-a_nodata %i',ndv);
-system(sprintf('%s %s %s "%s" "%s"',fun,pr1,pr2,afn,tfn));
+cmstr=sprintf('%s %s %s "%s" "%s"',fun,pr1,pr2,afn,tfn);
+system(cmstr);
 delete(afn);
 end
