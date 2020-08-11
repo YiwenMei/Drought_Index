@@ -32,23 +32,39 @@
 %  'Weibull'      - Weibull distribution
 
 function SDI_cal(Obj,Nm,DType,pth,fn,ors)
+%% Check the inputs
+narginchk(6,6);
+ips=inputParser;
+ips.FunctionName=mfilename;
+
+addRequired(ips,'Obj',@(x) validateattributes(x,{'V2DTCls'},{'nonempty'},mfilename,'Obj'));
+addRequired(ips,'Nm',@(x) validateattributes(x,{'double'},{'scalar'},mfilename,'Nm'));
+addRequired(ips,'DType',@(x) validateattributes(x,{'char'},{'nonempty'},mfilename,'DType'));
+addRequired(ips,'pth',@(x) validateattributes(x,{'char'},{'nonempty'},mfilename,'pth'));
+addRequired(ips,'fn',@(x) validateattributes(x,{'char'},{'nonempty'},mfilename,'fn'));
+addRequired(ips,'ors',@(x) validateattributes(x,{'char'},{'nonempty'},mfilename,'ors'));
+
+parse(ips,Obj,Nm,DType,pth,fn,ors);
+clear ips varargin
+
 %% Time line and spatial info
 TL=Obj.TimeCls('begin');
 [y,m,~]=datevec(TL);
 TL=[TL y m];
+syi=floor((Nm-2)/12)+2;
+ysrt=sort(unique(TL(:,2)));
 
 mk=Obj.readCls(1);
 mk=~isnan(mk);
 xll=Obj.GIf(1,1)-Obj.GIf(3,1)/2;
 yll=Obj.GIf(2,2)-Obj.GIf(3,2)/2;
 
-syi=floor((Nm-2)/12)+2;
-ysrt=sort(unique(TL(:,2)));
-
 for mi=1:12
 %% Cumulative variable
   ei=find(TL(:,3)==mi & TL(:,2)>=ysrt(syi));
   si=ei-Nm+1;
+  ei(si<=0)=[];
+  si(si<=0)=[];
   Cvb=[];
   for y=1:length(si)
     Obj1=Obj;
@@ -56,9 +72,8 @@ for mi=1:12
     FX=[];
     for m=1:length(Obj1.Fnm)
       vb=Obj1.readCls(m);
-      vb=reshape(vb,numel(vb),1);
-      vb(isnan(vb))=[];
-      FX=[FX vb];
+      vb(~mk)=[];
+      FX=[FX vb'];
     end
     Cvb=[Cvb sum(FX,2)];
   end
@@ -71,7 +86,8 @@ for mi=1:12
       for y=1:length(ei)
         FX(:,y)=sum(Cvb<=repmat(Cvb(:,y),1,length(ei)),2);
       end
-      FX=FX/(length(ei)+1); % Probability
+      FX(isnan(Cvb))=NaN;
+      FX=FX./(repmat(sum(~isnan(Cvb),2),1,length(ei))+1); % Probability
 
     case 'Exponential'
       for i=1:size(Cvb,1)
