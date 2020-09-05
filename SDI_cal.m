@@ -16,11 +16,14 @@
 %         the name fn.Nm.DType.yyyymm.tif in pth);
 %  ors : coordiante system of the output files (it must be the same as the input.
 
+% pflg: parallel flag (false - default, squential; true - parallel).
+
 %% Output
-% A list of geotiff files with the name fn.Nm.DType.yyyymm.tif in directory pth.
+% The drought index written as geotiff files with the name fn.Nm.DType.yyyymm.tif
+%  in directory pth.
 
 %% Additional note
-% Requrie matV2tif.m.
+% Requrie matV2tif.m and V2DTCls.m.
 
 % Available distribution for drought index calculation:
 %  'Empirical'    - empirical CDF
@@ -31,9 +34,9 @@
 %  'Log-logistic' - log logistic distribution
 %  'Weibull'      - Weibull distribution
 
-function SDI_cal(Obj,Nm,DType,pth,fn,ors)
+function SDI_cal(Obj,Nm,DType,pth,fn,ors,varargin)
 %% Check the inputs
-narginchk(6,6);
+narginchk(6,7);
 ips=inputParser;
 ips.FunctionName=mfilename;
 
@@ -44,24 +47,40 @@ addRequired(ips,'pth',@(x) validateattributes(x,{'char'},{'nonempty'},mfilename,
 addRequired(ips,'fn',@(x) validateattributes(x,{'char'},{'nonempty'},mfilename,'fn'));
 addRequired(ips,'ors',@(x) validateattributes(x,{'char'},{'nonempty'},mfilename,'ors'));
 
-parse(ips,Obj,Nm,DType,pth,fn,ors);
+addOptional(ips,'pflg',false,@(x) validateattributes(x,{'logical'},{'nonempty'},mfilename,'pflg'));
+
+parse(ips,Obj,Nm,DType,pth,fn,ors,varargin{:});
+pflg=ips.Results.pflg;
 clear ips varargin
 
 %% Time line and spatial info
 TL=Obj.TimeCls('begin');
 [y,m,~]=datevec(TL);
 TL=[TL y m];
-syi=floor((Nm-2)/12)+2;
-ysrt=sort(unique(TL(:,2)));
 
 mk=Obj.readCls(1);
 mk=~isnan(mk);
 xll=Obj.GIf(1,1)-Obj.GIf(3,1)/2;
 yll=Obj.GIf(2,2)-Obj.GIf(3,2)/2;
 
-for mi=1:12
+%% Calculate the index
+switch pflg
+  case true
+    parfor mi=1:12
+      SDI_cal_sub(TL,mi,Nm,Obj,mk,DType,pth,fn,xll,yll,ors);
+    end
+
+  case false
+    for mi=1:12
+      SDI_cal_sub(TL,mi,Nm,Obj,mk,DType,pth,fn,xll,yll,ors);
+    end
+end
+end
+
+function SDI_cal_sub(TL,mi,Nm,Obj,mk,DType,pth,fn,xll,yll,ors)
 %% Cumulative variable
-  ei=find(TL(:,3)==mi & TL(:,2)>=ysrt(syi));
+  fprintf('Execute variable accumulation');
+  ei=find(TL(:,3)==mi);
   si=ei-Nm+1;
   ei(si<=0)=[];
   si(si<=0)=[];
@@ -78,8 +97,10 @@ for mi=1:12
     Cvb=[Cvb sum(FX,2)];
   end
   clear Obj1 vb si cvb
+  fprintf(' ---- Done\n');
 
 %% Calculate the drought index
+  fprintf('Execute DI calculation - assume %s distribution',DType);
   FX=nan(size(Cvb));
   switch DType
     case 'Empirical'
@@ -134,6 +155,7 @@ for mi=1:12
   end
   FX=norminv(FX); % Drought index
   clear Cvb prm X
+  fprintf(' ---- Done\n');
 
 %% Output the index
   for y=1:length(ei)
@@ -141,6 +163,6 @@ for mi=1:12
     SDI(mk)=FX(:,y);
     ofn=fullfile(pth,sprintf('%s.%02i.%s.%d%02i.tif',fn,Nm,DType,TL(ei(y),2),mi));
     matV2tif(ofn,SDI,xll,yll,Obj.GIf(3,1),Obj.ndv,ors,pth);
+%     fprintf('Output %s\n',ofn);
   end
-end
 end

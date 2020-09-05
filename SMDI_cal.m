@@ -37,14 +37,23 @@ ips=inputParser;
 ips.FunctionName=mfilename;
 
 addRequired(ips,'Obj',@(x) validateattributes(x,{'V2DTCls'},{'nonempty'},mfilename,'Obj'));
+addRequired(ips,'DIT',@(x) validateattributes(x,{'char'},{'nonempty'},mfilename,'DIT'));
 addRequired(ips,'Nm',@(x) validateattributes(x,{'double'},{'scalar'},mfilename,'Nm'));
-addRequired(ips,'DType',@(x) validateattributes(x,{'char'},{'nonempty'},mfilename,'DType'));
+switch DIT
+  case 'SMI'
+    [~,~,sz,~]=Obj.GridCls;
+    addRequired(ips,'prm',@(x) validateattributes(x,{'double'},{'size',[sz 2]},mfilename,'prm'));
+  case 'SMDS'
+    addRequired(ips,'prm',@(x) validateattributes(x,{'cell'},{'numel',3},mfilename,'prm'));
+  otherwise
+    error('Please select from available index');
+end
 addRequired(ips,'pth',@(x) validateattributes(x,{'char'},{'nonempty'},mfilename,'pth'));
 addRequired(ips,'fn',@(x) validateattributes(x,{'char'},{'nonempty'},mfilename,'fn'));
 addRequired(ips,'ors',@(x) validateattributes(x,{'char'},{'nonempty'},mfilename,'ors'));
 
-parse(ips,Obj,Nm,DType,pth,fn,ors);
-clear ips varargin
+parse(ips,Obj,DIT,Nm,prm,pth,fn,ors);
+clear ips
 
 %% Time line and spatial info
 [Y,~,~]=datevec(Obj.TimeCls('begin'));
@@ -78,7 +87,7 @@ for mi=1:12
       for y=1:length(ei)
         DI=nan(size(mk)); % Reshape to the land mask
         DI(mk)=di(:,y);
-        ofn=fullfile(prm{1},sprintf('%s.%d%02i.tif',ifn,Y(ei(y)),mi));
+        ofn=fullfile(pth,sprintf('%s.%d%02i.tif',ifn,Y(ei(y)),mi));
         matV2tif(ofn,DI,xll,yll,Obj.GIf(3,1),Obj.ndv,ors,pth);
       end
 
@@ -86,6 +95,7 @@ for mi=1:12
 %% Soil Moisutre Drought Sevirity
       ifn=prm{2};
       if prm{3}
+        fprintf('Execute soil moisture probability calculation\n');
 % Reshape SM maps
         [SM,ei]=SMDI_cal_sub(mi,1,Obj,mk);
 
@@ -105,9 +115,6 @@ for mi=1:12
           matV2tif(ofn,DI,xll,yll,Obj.GIf(3,1),Obj.ndv,ors,pth);
         end
       end
-
-    otherwise
-      error('Please select from available index');
   end
 end
 
@@ -127,7 +134,7 @@ if strcmp(DIT,'SMDS')
     for y=1:length(ei)
       DI=nan(size(mk)); % Reshape to the land mask
       DI(mk)=di(:,y);
-      ofn=fullfile(pth,sprintf('%s.%02i.%d%02i.tif',fn,Nm,Y(ei(y)),mi));
+      ofn=fullfile(pth,sprintf('%s.%02i.Empirical.%d%02i.tif',fn,Nm,Y(ei(y)),mi));
       matV2tif(ofn,DI,xll,yll,Obj.GIf(3,1),Obj.ndv,ors,pth);
     end
   end
