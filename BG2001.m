@@ -1,12 +1,12 @@
 % Yiwen Mei (yiwenm@umich.edu)
 % SEAS, University of Michigan
-% Last update: 8/1/2020
+% Last update: 8/1/2021
 
 %% Functionality
-% This code perform the change point detection method proposed by Bernaola-Galv·n
+% This code perform the change point detection method proposed by Bernaola-Galv√°n
 %  et al.(2001).
 
-% Bernaola-Galv·n, P., Ivanov, P. C., Amaral, L. A. N., & Stanley, H. E. (2001).
+% Bernaola-Galv√°n, P., Ivanov, P. C., Amaral, L. A. N., & Stanley, H. E. (2001).
 %  Scale invariance in the nonstationarity of human heart rate. Phys. Rev. Lett.,
 %  87(16), 168105.).
 
