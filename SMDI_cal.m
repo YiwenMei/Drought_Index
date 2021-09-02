@@ -59,8 +59,9 @@ clear ips
 [Y,~,~]=datevec(Obj.TimeCls('begin'));
 
 mk=~isnan(Obj.readCls(1));
-xll=Obj.GIf(1,1)-Obj.GIf(3,1)/2;
-yll=Obj.GIf(2,2)-Obj.GIf(3,2)/2;
+obj.xll=Obj.GIf(1,1)-Obj.GIf(3,1)/2;
+obj.yll=Obj.GIf(2,2)-Obj.GIf(3,2)/2;
+obj.rs=Obj.GIf(3,1);
 
 for mi=1:12
   switch DIT
@@ -88,7 +89,7 @@ for mi=1:12
         DI=nan(size(mk)); % Reshape to the land mask
         DI(mk)=di(:,y);
         ofn=fullfile(pth,sprintf('%s.%d%02i.tif',ifn,Y(ei(y)),mi));
-        matV2tif(ofn,DI,xll,yll,Obj.GIf(3,1),Obj.ndv,ors,pth);
+        matV2tif(ofn,DI,Obj.ndv,obj,ors,pth)
       end
 
     case 'SMDS'
@@ -112,7 +113,7 @@ for mi=1:12
           DI=nan(size(mk)); % Reshape to the land mask
           DI(mk)=di(:,y);
           ofn=fullfile(prm{1},sprintf('%s.%d%02i.tif',ifn,Y(ei(y)),mi));
-          matV2tif(ofn,DI,xll,yll,Obj.GIf(3,1),Obj.ndv,ors,pth);
+          matV2tif(ofn,DI,Obj.ndv,obj,ors,pth)
         end
       end
   end
@@ -135,7 +136,7 @@ if strcmp(DIT,'SMDS')
       DI=nan(size(mk)); % Reshape to the land mask
       DI(mk)=di(:,y);
       ofn=fullfile(pth,sprintf('%s.%02i.Empirical.%d%02i.tif',fn,Nm,Y(ei(y)),mi));
-      matV2tif(ofn,DI,xll,yll,Obj.GIf(3,1),Obj.ndv,ors,pth);
+      matV2tif(ofn,DI,Obj.ndv,obj,ors,pth)
     end
   end
 end
