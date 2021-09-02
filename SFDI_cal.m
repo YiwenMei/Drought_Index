@@ -24,9 +24,9 @@
 
 % ofn: file name of the .mat file storing the SSIs.
 
-function [SSI,ofn]=SFDI_cal(TL,Q,Mlag,pth,fn,varargin)
+function [SSI,ofn]=SFDI_cal(TL,Q,Mlag,pth,varargin)
 %% Check the inputs
-narginchk(5,7);
+narginchk(4,7);
 ips=inputParser;
 ips.FunctionName=mfilename;
 
@@ -34,12 +34,13 @@ addRequired(ips,'TL',@(x) validateattributes(x,{'double'},{'nonempty'},mfilename
 addRequired(ips,'Q',@(x) validateattributes(x,{'double'},{'nonempty'},mfilename,'Q'));
 addRequired(ips,'Mlag',@(x) validateattributes(x,{'double'},{'nonempty'},mfilename,'Mlag'));
 addRequired(ips,'pth',@(x) validateattributes(x,{'char'},{'nonempty'},mfilename,'pth'));
-addRequired(ips,'fn',@(x) validateattributes(x,{'char'},{'nonempty'},mfilename,'fn'));
 
+addOptional(ips,'fn','',@(x) validateattributes(x,{'char'},{'nonempty'},mfilename,'fn'));
 addOptional(ips,'lgflg',false,@(x) validateattributes(x,{'logical'},{'nonempty'},mfilename,'lgflg'));
 addOptional(ips,'pflg',false,@(x) validateattributes(x,{'logical'},{'nonempty'},mfilename,'pflg'));
 
-parse(ips,TL,Q,Mlag,pth,fn,varargin{:});
+parse(ips,TL,Q,Mlag,pth,varargin{:});
+fn=ips.Results.fn;
 lgflg=ips.Results.lgflg;
 pflg=ips.Results.pflg;
 clear ips varargin
@@ -65,21 +66,22 @@ for m=1:length(Mlag)
   end
 
 %% Store the index in table
-  Tssi=array2table([TL(:,1) Ssi], 'VariableNames', {'Dnum', sprintf('Acc_%02i',Mlag(m))});
+  Tssi=array2timetable(Ssi,'RowTimes',datetime(TL(:,2),TL(:,3),1),...
+      'VariableNames',{sprintf('Acc_%02i',Mlag(m))});
   if m==1
     SSI=Tssi;
   else
-    SSI=outerjoin(SSI,Tssi,'Keys','Dnum','MergeKeys',1);
+    SSI=outerjoin(SSI,Tssi,'Keys','Time','MergeKeys',1);
   end
 end
-[y,m,~]=datevec(SSI.Dnum);
-y=array2table([y m SSI.Dnum],'VariableNames',{'Year','Month','Dnum'});
-SSI=outerjoin(y,SSI,'Keys','Dnum','MergeKeys',1);
-SSI=removevars(SSI,'Dnum');
 
 %% Output the SSI
-ofn=fullfile(pth,sprintf('%s.%s.mat',vn,fn));
-save(ofn,'SSI');
+if ~isempty(fn)
+  ofn=fullfile(pth,sprintf('%s.%s.mat',vn,fn));
+  save(ofn,'SSI');
+else
+  ofn='';
+end
 end
 
 function [ssi,ei,vn]=SFDI_cal_sub(TL,mi,mlag,Q,lgflg)
