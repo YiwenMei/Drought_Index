@@ -7,8 +7,8 @@
 %  to calculate the Theil-Sen's (TS) slope of the time series.
 
 %% Input
-% TI: time indices of the time series;
-% TV: values of the time series;
+% TI: time indices of the time series (must have at least 3 data points);
+% TV: values of the time series (must have at least 3 data points);
 
 % alp : significant level for conducting the MK test (default is 0.05);
 % Tflg: flag indicating the type of alternative hypothesis to evaluate (i.e.
@@ -24,8 +24,8 @@ narginchk(2,4);
 ips=inputParser;
 ips.FunctionName=mfilename;
 
-addRequired(ips,'TI',@(x) validateattributes(x,{'double'},{'nonempty'},mfilename,'TI'));
-addRequired(ips,'TV',@(x) validateattributes(x,{'double'},{'nonempty'},mfilename,'TV'));
+addRequired(ips,'TI',@(x) validateattributes(x,{'double'},{'vector'},mfilename,'TI'));
+addRequired(ips,'TV',@(x) validateattributes(x,{'double'},{'vector'},mfilename,'TV'));
 
 addOptional(ips,'alp',.05,@(x) validateattributes(x,{'double'},{'scalar'},mfilename,'alp'));
 addOptional(ips,'Tflg','left',@(x) validateattributes(x,{'char'},{'nonempty'},mfilename,'Tflg'));
@@ -37,29 +37,37 @@ clear ips varargin
 
 %% Mann-Kendall test
 N=length(TV); 
-Cid=combnk(1:N,2);
+if N>=3
+  Cid=combnk(1:N,2);
 
-dV=diff(TV(Cid),1,2);
-uv=unique(TV(Cid(dV==0))); % Values for tied groups
-if ~isempty(uv)
-  tp=arrayfun(@(X) length(find(TV==X)),uv); % Count of tied group
-  adj=sum(tp.*(tp-1).*(2*tp+5)); % Adjust for tied values
-else
-  adj=0;
-end
+  dV=diff(TV(Cid),1,2);
+  uv=unique(TV(Cid(dV==0))); % Values for tied groups
+  if ~isempty(uv)
+    tp=arrayfun(@(X) length(find(TV==X)),uv); % Count of tied group
+    adj=sum(tp.*(tp-1).*(2*tp+5)); % Adjust for tied values
+  else
+    adj=0;
+  end
 
-S=sum(sign(dV)); % MK statistics
-StdS=sqrt((N*(N-1)*(2*N+5)-adj)/18);
+  S=sum(sign(dV)); % MK statistics
+  StdS=sqrt((N*(N-1)*(2*N+5)-adj)/18);
 
 % Significant test
-if S>=0
-  Z=((S-1)/StdS)*(S~=0);
-else
-  Z=(S+1)/StdS;
-end
-[H,pv]=ztest(Z,0,1,'alpha',alp,'Tail',Tflg);
+  if S>=0
+    Z=((S-1)/StdS)*(S~=0);
+  else
+    Z=(S+1)/StdS;
+  end
+  [H,pv]=ztest(Z,0,1,'alpha',alp,'Tail',Tflg);
 
 %% Theil-Sen's slope estimate
-slp=diff(TV(Cid),1,2)./diff(TI(Cid),1,2);
-Slp=median(slp);
+  slp=diff(TV(Cid),1,2)./diff(TI(Cid),1,2);
+  Slp=median(slp);
+
+else
+  Slp=NaN;
+  H=NaN;
+  Z=NaN;
+  pv=NaN;
+end
 end

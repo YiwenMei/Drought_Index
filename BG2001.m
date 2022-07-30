@@ -1,12 +1,12 @@
 % Yiwen Mei (yiwenm@umich.edu)
 % SEAS, University of Michigan
-% Last update: 8/1/2021
+% Last update: 8/1/2020
 
 %% Functionality
-% This code perform the change point detection method proposed by Bernaola-GalvÃ¡n
+% This code perform the change point detection method proposed by Bernaola-Galván
 %  et al.(2001).
 
-% Bernaola-GalvÃ¡n, P., Ivanov, P. C., Amaral, L. A. N., & Stanley, H. E. (2001).
+% Bernaola-Galván, P., Ivanov, P. C., Amaral, L. A. N., & Stanley, H. E. (2001).
 %  Scale invariance in the nonstationarity of human heart rate. Phys. Rev. Lett.,
 %  87(16), 168105.).
 
@@ -15,7 +15,7 @@
 %  l0 : the minimum length of a segment where the change point detection will
 %        still be performed;
 % Nmin: minimum potential change point within a segment with which the change
-%        point detection will still be performed;
+%        point detection will still be performed.
 
 % alp: significant level for the t-test (default is 0.05).
 
@@ -65,10 +65,10 @@ while flg
 %% Calculate the t statistics
       for t=l1+1:length(ts)-l1
 % Statistics of the two segments
-        u1=nanmean(ts(1:t-1));
+        u1=mean(ts(1:t-1),'omitnan');
         s1=std(ts(1:t-1),'omitnan');
         N1=sum(~isnan(ts(1:t-1)));
-        u2=nanmean(ts(t:length(ts)-l1));
+        u2=mean(ts(t:length(ts)-l1),'omitnan');
         s2=std(ts(t:length(ts)-l1),'omitnan');
         N2=sum(~isnan(ts(t:length(ts)-l1)));
 
@@ -85,7 +85,7 @@ while flg
       I=betainc(v/(v+tx^2),.4*v,.4);
       P_tx=(1-I)^eta;
 
-      if P_tx>=alp
+      if P_tx>=1-alp
         pts(p)=tsi(id);
 
 % Update the time series
