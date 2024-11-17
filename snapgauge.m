@@ -11,8 +11,8 @@
 % Stn: a Matlab table with three variable under the name of X, Y, and Area representing
 %       the horizontal coordinate (m), vertical coordinate (m), and drainage
 %       area (km^2);
-% fac : the flow accumulation raster (FAC);
-% X/Y : the horizontal/vertical coordinate of FAC;
+% fac: the flow accumulation raster (FAC);
+% X/Y: the horizontal/vertical coordinate of FAC;
 % Nit: maximum number of iteration (every iteration, the maximum possible snapping
 %       distance for the gauges is Nit*resolution of FAC;
 % Er : tolerance of drainage area (fraction).
@@ -34,7 +34,7 @@ addRequired(ips,'X',@(x) validateattributes(x,{'double'},{'nonempty'},mfilename,
 addRequired(ips,'Y',@(x) validateattributes(x,{'double'},{'nonempty'},mfilename,'Y'));
 addRequired(ips,'Nit',@(x) validateattributes(x,{'double'},{'scalar'},mfilename,'Nit'));
 addRequired(ips,'Er',@(x) validateattributes(x,{'double'},{'vector'},mfilename,'Er'));
-if length(Er)==1
+if isscalar(Er)
   Er=Er*ones(Nit,1);
 elseif length(Er)~=Nit
   error('Length of Er must be 1 or %i',Nit);
@@ -63,9 +63,9 @@ for i=1:Nit+1
     Rx=i*r_m;
     ErA=Er(i);
   end
-  fprintf('Iter #%i - ',i);
-  fprintf('Search Radius : %im - ',round(Rx));
-  fprintf('Tolerence : %.2f%% - ',ErA*100);
+%   fprintf('Iter #%i - ',i);
+%   fprintf('Search Radius : %im - ',round(Rx));
+%   fprintf('Tolerence : %.2f%% - ',ErA*100);
 
   N=round(pi()*(Rx/r_m)^2);
   stn=Stn(k,:);
@@ -116,18 +116,18 @@ for i=1:Nit+1
 % All station satisfied or not
   k=isnan(Asn);
   if sum(k)==0 && i~=Nit+1
-    fprintf('%d out of %d stations passed\n',sum(k1),size(stn,1));
-    fprintf('All stations passed\n');
+%     fprintf('%d out of %d stations passed\n',sum(k1),size(stn,1));
+%     fprintf('All stations passed\n');
     break;
   end
-  if i<Nit
-    fprintf('%d out of %d stations passed\n',sum(k1),size(stn,1));
-  elseif i==Nit
-    fprintf('%d out of %d stations passed\n',sum(k1),size(stn,1));
-    fprintf('%d out of %d (%.2f%%) stations passed\n',sum(~k),size(Stn,1),100*sum(~k)/size(Stn,1));
-  else
-    fprintf('Done\n');
-  end
+%   if i<Nit
+%     fprintf('%d out of %d stations passed\n',sum(k1),size(stn,1));
+%   elseif i==Nit
+%     fprintf('%d out of %d stations passed\n',sum(k1),size(stn,1));
+%     fprintf('%d out of %d (%.2f%%) stations passed\n',sum(~k),size(Stn,1),100*sum(~k)/size(Stn,1));
+%   else
+%     fprintf('Done\n');
+%   end
 end
 
 % Construct the new station records table
